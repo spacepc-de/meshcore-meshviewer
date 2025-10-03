@@ -1,0 +1,116 @@
+version: "3.9"
+
+name: ${PROJECT_NAME:-meshviewer}
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ${PROJECT_NAME:-meshviewer}-db
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - app-net
+
+  backend:
+    build:
+      context: ./backend
+    container_name: ${PROJECT_NAME:-meshviewer}-backend
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DJANGO_DEBUG=${DJANGO_DEBUG}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      # Meshcore CLI integration (optional)
+      - MESHCORE_TARGET=${MESHCORE_TARGET}
+      - MESH_INFO_COMMAND=${MESH_INFO_COMMAND}
+      - MESHCORE_CLI=${MESHCORE_CLI}
+      - MESH_CONTACTS_COMMAND=${MESH_CONTACTS_COMMAND}
+    depends_on:
+      - db
+    expose:
+      - "${BACKEND_PORT}"
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    networks:
+      - app-net
+
+  collector:
+    build:
+      context: ./backend
+    container_name: ${PROJECT_NAME:-meshviewer}-collector
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DJANGO_DEBUG=${DJANGO_DEBUG}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - MESHCORE_TARGET=${MESHCORE_TARGET}
+      - MESHCORE_CLI=${MESHCORE_CLI}
+      - MESH_INFO_COMMAND=${MESH_INFO_COMMAND}
+      - MESH_CONTACTS_COMMAND=${MESH_CONTACTS_COMMAND}
+      - MESH_CONTACT_INFO_COMMAND=${MESH_CONTACT_INFO_COMMAND}
+    depends_on:
+      - db
+    networks:
+      - app-net
+    command: ["/bin/sh", "-lc", "python manage.py run_contact_collector --min-interval 30 --debug"]
+
+
+  # Optional: a placeholder service to host meshcore-cli if you clone/build it locally.
+  # Adjust build and command to run the actual CLI and expose required ports.
+  meshcore-cli:
+    build:
+      context: ./meshcore
+    container_name: ${PROJECT_NAME:-meshviewer}-meshcore-cli
+    # Example port mappings (customize as needed). Disabled by default to avoid host port conflicts.
+    # Uncomment when the CLI actually listens on these ports and you need host access.
+    # ports:
+    #   - "${MESHCORE_TCP_PORT1}:${MESHCORE_TCP_PORT1}"
+    #   - "${MESHCORE_TCP_PORT2}:${MESHCORE_TCP_PORT2}"
+    networks:
+      - app-net
+    # Keep running by default; replace with your CLI command
+    command: ["/bin/sh", "-lc", "echo 'meshcore-cli container running'; tail -f /dev/null"]
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
+    container_name: ${PROJECT_NAME:-meshviewer}-nginx
+    env_file:
+      - .env
+    ports:
+      - "${HTTP_PORT}:80"
+      # Uncomment to enable TLS after adding certs and config
+      # - "${HTTPS_PORT}:443"
+    depends_on:
+      - backend
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
+
+volumes:
+  db-data:
+    driver: local
