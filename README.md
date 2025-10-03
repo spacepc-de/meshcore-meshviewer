@@ -13,9 +13,9 @@ Tip: This README is intentionally comprehensive to help you run, develop, and de
 
 ## Screenshots
 
-![Screenshot 1](https://i.ibb.co/35xs63Gh/your-image.png)
+![Screenshot 1](https://i.ibb.co/hxGMQ6h8/Bildschirmfoto-2025-10-03-um-20-03-55.png))
 
-![Screenshot 2](https://i.ibb.co/s9hS696H/your-image.png)
+![Screenshot 2](https://i.ibb.co/nMT2nMnC/Bildschirmfoto-2025-10-03-um-20-04-09.png)
 
 
 ## Quickstart
