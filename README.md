@@ -10,6 +10,14 @@ Vue 3 Single Page App served by Nginx with a Django REST API (DRF) backend. The 
 
 Tip: This README is intentionally comprehensive to help you run, develop, and deploy the project end‑to‑end. If you only need the short path, jump to Quickstart.
 
+
+## Screenshots
+
+![Screenshot 1](https://i.ibb.co/35xs63Gh/your-image.png)
+
+![Screenshot 2](https://i.ibb.co/s9hS696H/your-image.png)
+
+
 ## Quickstart
 
 1) Copy the environment template and adjust values:
